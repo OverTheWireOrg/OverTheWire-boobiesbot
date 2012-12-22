@@ -73,7 +73,7 @@ class BoobiesBotFactory(GenericIRCBotFactory):
     def __init__(self, proto, channel, nick, fullname, url): #{{{
         GenericIRCBotFactory.__init__(self, proto, channel, nick, fullname, url)
 	# if the db file doesn't exist, create it
-	self.db_init("/vulnbot/boobiesbot/boobies.db")
+	self.db_init("boobies.db")
 # }}}
     def db_init(self, fn): #{{{
 	if os.path.exists(fn):
