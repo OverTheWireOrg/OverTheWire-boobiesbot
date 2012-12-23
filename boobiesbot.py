@@ -3,6 +3,10 @@
 # twisted imports
 from twisted.words.protocols import irc
 from twisted.internet import reactor, protocol
+import aalib
+import Image
+import urllib2
+from cStringIO import StringIO
 
 # SQLite
 import sqlite3
@@ -34,11 +38,17 @@ class BoobiesBot(GenericIRCBot):
                 "tillEnd": True,
                 "help": "delete a boobies URL by ID",
             },
+            "!aaboobies": {
+                "fn": self.handle_AABOOBIES,
+                "argc": self.DontCheckARGC,
+                "tillEnd": True,
+                "help": "get random AA boobies in query",
+            },
 	}
 
 	self.commands = {
 	    # only in direct user message, first word is the command
-	    "private": ["!help", "!boobies", "!delboobies"],
+	    "private": ["!help", "!boobies", "!delboobies","!aaboobies"],
 	    # only in channels, first word must be the command
 	    "public": ["!boobies", "!delboobies"],
 	    # only in channels, first word is the name of this bot followed by a colon, second word is the command
@@ -64,6 +74,19 @@ class BoobiesBot(GenericIRCBot):
 	    self.factory.db_delBoobies(boobieid)
 	    self.sendMessage(msgtype, user, recip, "removed boobies url %d" % boobieid)
 
+#}}}
+    def handle_AABOOBIES(self, msgtype, user, recip, cmd): #{{{
+            width = 60
+            height= 30
+            (url, bid) = self.factory.db_getRandomBoobies()
+            screen = aalib.AsciiScreen(width=width, height=height)
+            fp = StringIO(urllib2.urlopen(url).read())
+            image = Image.open(fp).convert('L').resize(screen.virtual_size)
+            screen.put_image((0, 0), image)
+	    output= screen.render()
+	    out_arr = output.split()
+	    for i in xrange(height):
+                        self.sendMessage(msgtype ,user ,recip, out_arr[i])
 #}}}
 
     def joined(self, channel):
@@ -108,7 +131,7 @@ class BoobiesBotFactory(GenericIRCBotFactory):
 
 if __name__ == '__main__':
     # create factory protocol and application
-    f = BoobiesBotFactory(BoobiesBot, ["#social"], "BoobiesBot", "BoobiesBot v1.0", "https://github.com/StevenVanAcker/OverTheWire-boobiesbot")
+    f = BoobiesBotFactory(BoobiesBot, ["#social"], "BoobiesBot", "BoobiesBot v1.1", "https://github.com/StevenVanAcker/OverTheWire-boobiesbot")
 
     # connect factory to this host and port
     reactor.connectTCP("irc.overthewire.org", 6667, f)
