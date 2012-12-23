@@ -57,8 +57,11 @@ class BoobiesBot(GenericIRCBot):
 
     def handle_BOOBIES(self, msgtype, user, recip, cmd, url=""): #{{{
         if url and url.startswith("http://"):
-	    bid = self.factory.db_addBoobies(url)
-	    self.sendMessage(msgtype, user, recip, "Thanks for the boobies (id=%d)! <3" % bid)
+	    if self.factory.db_alreadyStored(url):
+		self.sendMessage(msgtype, user, recip, "Thanks, but I already had those boobies <3")
+	    else:
+		bid = self.factory.db_addBoobies(url)
+		self.sendMessage(msgtype, user, recip, "Thanks for the boobies (id=%d)! <3" % bid)
 	else:
 	    (url, bid) = self.factory.db_getRandomBoobies()
 	    if url:
@@ -117,7 +120,7 @@ class BoobiesBot(GenericIRCBot):
 	        continue
 
 	    # Check if URL contains boobies, add it if it does
-	    if self.isBoobiesPicture(url):
+	    if self.isBoobiesPicture(url) and not self.factory.db_alreadyStored(url):
 		GenericIRCBot.privmsg(self, user, channel, "!boobies %s" % url)
     #}}}
     def joined(self, channel): #{{{
@@ -149,6 +152,15 @@ class BoobiesBotFactory(GenericIRCBotFactory):
 	self.db.commit()
         return cu.lastrowid
     #}}}
+    def db_alreadyStored(self, url): #{{{
+	cu = self.db.cursor()
+	cu.execute("select rowid from boobies where url = ?", (url,))
+	row = cu.fetchone()
+	if row:
+	    return True
+	else:
+	    return False
+    #}}}
     def db_getRandomBoobies(self): #{{{
 	cu = self.db.cursor()
 	cu.execute("select url, rowid from boobies order by random() limit 1")
@@ -167,7 +179,7 @@ class BoobiesBotFactory(GenericIRCBotFactory):
 
 if __name__ == '__main__':
     # create factory protocol and application
-    f = BoobiesBotFactory(BoobiesBot, ["#social"], "BoobiesBot", "BoobiesBot v1.1", "https://github.com/StevenVanAcker/OverTheWire-boobiesbot")
+    f = BoobiesBotFactory(BoobiesBot, ["#social"], "BoobiesBot", "BoobiesBot v1.2", "https://github.com/StevenVanAcker/OverTheWire-boobiesbot")
 
     # connect factory to this host and port
     reactor.connectTCP("irc.overthewire.org", 6667, f)
