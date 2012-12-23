@@ -16,6 +16,7 @@ import sys, os.path
 from time import gmtime, strftime
 
 from GenericIRCBot import GenericIRCBot, GenericIRCBotFactory, log
+from BoobiesClassifier import isBoobiesPicture
 
 class BoobiesBot(GenericIRCBot):
     def __init__(self):
@@ -120,15 +121,11 @@ class BoobiesBot(GenericIRCBot):
 	        continue
 
 	    # Check if URL contains boobies, add it if it does
-	    if self.isBoobiesPicture(url) and not self.factory.db_alreadyStored(url):
+	    if isBoobiesPicture(url) and not self.factory.db_alreadyStored(url):
 		GenericIRCBot.privmsg(self, user, channel, "!boobies %s" % url)
     #}}}
     def joined(self, channel): #{{{
         pass
-    #}}}
-    def isBoobiesPicture(self, url): #{{{
-        '''This method should verify if a given URL is a picture that contains boobies.'''
-        return False
     #}}}
 
 class BoobiesBotFactory(GenericIRCBotFactory):
