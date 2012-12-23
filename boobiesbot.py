@@ -89,8 +89,44 @@ class BoobiesBot(GenericIRCBot):
                         self.sendMessage(msgtype ,user ,recip, out_arr[i])
 #}}}
 
-    def joined(self, channel):
+    def privmsg(self, user, channel, msg): #{{{
+	# don't do anything if this message might be processed later on
+	for cmd in self.commandData.keys():
+	    if cmd in msg:
+		GenericIRCBot.privmsg(self, user, channel, msg)
+		return
+	
+	# look at individual pieces, each may be an URL
+    	maybeurls = msg.split()
+
+	for url in maybeurls:
+	    # URL must start with http://
+	    if not url.startswith("http://"):
+	        continue
+	    # URL must end with valid suffix
+	    validSuffices = [".jpg", ".jpeg", ".gif", ".png"]
+	    hasValidSuffix = False
+
+	    for suf in validSuffices:
+		if url.endswith(suf):
+		    hasValidSuffix = True
+		    break
+
+
+	    if not hasValidSuffix:
+	        continue
+
+	    # Check if URL contains boobies, add it if it does
+	    if self.isBoobiesPicture(url):
+		GenericIRCBot.privmsg(self, user, channel, "!boobies %s" % url)
+    #}}}
+    def joined(self, channel): #{{{
         pass
+    #}}}
+    def isBoobiesPicture(self, url): #{{{
+        '''This method should verify if a given URL is a picture that contains boobies.'''
+        return False
+    #}}}
 
 class BoobiesBotFactory(GenericIRCBotFactory):
     def __init__(self, proto, channel, nick, fullname, url): #{{{
