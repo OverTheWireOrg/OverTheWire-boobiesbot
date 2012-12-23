@@ -40,8 +40,8 @@ class BoobiesBot(GenericIRCBot):
             },
             "!aaboobies": {
                 "fn": self.handle_AABOOBIES,
-                "argc": self.DontCheckARGC,
-                "tillEnd": True,
+                "argc": 0,
+                "tillEnd": False,
                 "help": "get random AA boobies in query",
             },
 	}
