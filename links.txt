@@ -1,0 +1,3 @@
+Skin detection - a short tutorial --- http://www.cs.rutgers.edu/~elgammal/pub/skin.pdf
+A simple approach of detecting skin in python (identifies pixels in a range around certain color values) --- https://github.com/hberg539/nude.py
+
