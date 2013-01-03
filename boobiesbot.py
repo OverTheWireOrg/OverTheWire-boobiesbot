@@ -49,7 +49,7 @@ class BoobiesBot(GenericIRCBot):
 
 	self.commands = {
 	    # only in direct user message, first word is the command
-	    "private": ["!help", "!boobies", "!delboobies","!aaboobies"],
+	    "private": ["!help", "!boobies", "!aaboobies"],
 	    # only in channels, first word must be the command
 	    "public": ["!boobies", "!delboobies"],
 	    # only in channels, first word is the name of this bot followed by a colon, second word is the command
@@ -58,6 +58,10 @@ class BoobiesBot(GenericIRCBot):
 
     def handle_BOOBIES(self, msgtype, user, recip, cmd, url=""): #{{{
         if url and url.startswith("http://"):
+	    if msgtype == "private":
+		self.sendMessage(msgtype, user, recip, "Sorry, adding is not allowed in this message mode.")
+		return
+
 	    if self.factory.db_alreadyStored(url):
 		self.sendMessage(msgtype, user, recip, "Thanks, but I already had those boobies <3")
 	    else:
