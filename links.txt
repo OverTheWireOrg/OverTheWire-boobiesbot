@@ -1,3 +1,4 @@
 Skin detection - a short tutorial --- http://www.cs.rutgers.edu/~elgammal/pub/skin.pdf
 A simple approach of detecting skin in python (identifies pixels in a range around certain color values) --- https://github.com/hberg539/nude.py
 JavaScript implementation of a nudity scanner (finds patches in an image of "skin" color) --- https://github.com/pa7/nude.js
+Tutorial: OpenCV haartraining (Rapid Object Detection With A Cascade of Boosted Classifiers Based on Haar-like Features) --- http://note.sonots.com/SciSoftware/haartraining.html
