@@ -180,7 +180,7 @@ class BoobiesBotFactory(GenericIRCBotFactory):
 
 if __name__ == '__main__':
     # create factory protocol and application
-    f = BoobiesBotFactory(BoobiesBot, ["#social"], "BoobiesBot", "BoobiesBot v1.2", "https://github.com/StevenVanAcker/OverTheWire-boobiesbot")
+    f = BoobiesBotFactory(BoobiesBot, ["#social"], "BoobiesBot", "BoobiesBot v1.3", "https://github.com/StevenVanAcker/OverTheWire-boobiesbot")
 
     # connect factory to this host and port
     reactor.connectTCP("irc.overthewire.org", 6667, f)
