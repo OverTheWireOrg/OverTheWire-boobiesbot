@@ -108,8 +108,8 @@ class BoobiesBot(GenericIRCBot):
     	maybeurls = msg.split()
 
 	for url in maybeurls:
-	    # URL must start with http://
-	    if not url.startswith("http://"):
+	    # URL must start with http:// or https://
+	    if not url.startswith("http://") or not url.startswith("https://"):
 	        continue
 	    # URL must end with valid suffix
 	    validSuffices = [".jpg", ".jpeg", ".gif", ".png"]
