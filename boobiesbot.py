@@ -45,15 +45,21 @@ class BoobiesBot(GenericIRCBot):
                 "tillEnd": False,
                 "help": "get random AA boobies in query",
             },
+            "!info": {
+                "fn": self.handle_INFO,
+                "argc": 0,
+                "tillEnd": False,
+                "help": "get info on this bot",
+            },
 	}
 
 	self.commands = {
 	    # only in direct user message, first word is the command
-	    "private": ["!help", "!boobies", "!aaboobies"],
+	    "private": ["!help", "!boobies", "!aaboobies", "!info"],
 	    # only in channels, first word must be the command
-	    "public": ["!boobies", "!delboobies"],
+	    "public": ["!boobies", "!delboobies", "!info"],
 	    # only in channels, first word is the name of this bot followed by a colon, second word is the command
-	    "directed": ["!boobies", "!delboobies"],
+	    "directed": ["!boobies", "!delboobies", "!info"],
 	}
 
     def handle_BOOBIES(self, msgtype, user, recip, cmd, url=""): #{{{
@@ -95,6 +101,10 @@ class BoobiesBot(GenericIRCBot):
 	    out_arr = output.split()
 	    for i in xrange(height):
                         self.sendMessage(msgtype ,user ,recip, out_arr[i])
+#}}}
+    def handle_INFO(self, msgtype, user, recip, cmd, url=""): #{{{
+	self.sendMessage(msgtype, user, recip, "I am %s. Contribute to my sourcecode via pull-requests on %s." % (self.getFullname(), self.getURL()))
+	return
 #}}}
 
     def privmsg(self, user, channel, msg): #{{{
