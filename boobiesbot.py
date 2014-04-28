@@ -63,7 +63,7 @@ class BoobiesBot(GenericIRCBot):
 	}
 
     def handle_BOOBIES(self, msgtype, user, recip, cmd, url=""): #{{{
-        if url and url.startswith("http://"):
+        if url and url.startswith(("http://","https://")):
 	    if msgtype == "private":
 		self.sendMessage(msgtype, user, recip, "Sorry, adding is not allowed in this message mode.")
 		return
@@ -73,7 +73,16 @@ class BoobiesBot(GenericIRCBot):
 	    else:
 		bid = self.factory.db_addBoobies(url)
 		self.sendMessage(msgtype, user, recip, "Thanks for the boobies (id=%d)! <3" % bid)
-	else:
+
+        elif url and url.isdigit(): # request for a specific pair of boobs
+            id=int(url)
+            (url, bid) = self.factory.db_getSpecificBoobies(id)
+            if url:
+                self.sendMessage(msgtype, user, recip, "[%d] %s" % (bid, url))
+            else:
+                self.sendMessage(msgtype, user, recip, "No boobies with this id :(")
+
+        else:
 	    (url, bid) = self.factory.db_getRandomBoobies()
 	    if url:
 	        self.sendMessage(msgtype, user, recip, "[%d] %s" % (bid, url))
@@ -119,7 +128,7 @@ class BoobiesBot(GenericIRCBot):
 
 	for url in maybeurls:
 	    # URL must start with http:// or https://
-	    if not url.startswith("http://") and not url.startswith("https://"):
+            if not url.startswith(("http://","https://")):
 	        continue
 	    # URL must end with valid suffix
 	    validSuffices = [".jpg", ".jpeg", ".gif", ".png"]
@@ -172,6 +181,15 @@ class BoobiesBotFactory(GenericIRCBotFactory):
 	else:
 	    return False
     #}}}
+    def db_getSpecificBoobies(self,id): #{{{
+       cu = self.db.cursor()
+       cu.execute("select url, rowid from boobies where rowid=%d" %id)
+       row = cu.fetchone()
+       if row:
+           return (str(row[0]), int(row[1]))
+       else:
+           return ("", 0)
+   #}}}
     def db_getRandomBoobies(self): #{{{
 	cu = self.db.cursor()
 	cu.execute("select url, rowid from boobies order by random() limit 1")
