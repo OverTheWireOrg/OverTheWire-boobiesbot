@@ -63,7 +63,7 @@ class BoobiesBot(GenericIRCBot):
 	}
 
     def handle_BOOBIES(self, msgtype, user, recip, cmd, url=""): #{{{
-        if url and url.startswith("http://"):
+        if url and url.startswith(("http://","https://")):
 	    if msgtype == "private":
 		self.sendMessage(msgtype, user, recip, "Sorry, adding is not allowed in this message mode.")
 		return
@@ -119,7 +119,7 @@ class BoobiesBot(GenericIRCBot):
 
 	for url in maybeurls:
 	    # URL must start with http:// or https://
-	    if not url.startswith("http://") and not url.startswith("https://"):
+            if not url.startswith(("http://","https://")):
 	        continue
 	    # URL must end with valid suffix
 	    validSuffices = [".jpg", ".jpeg", ".gif", ".png"]
