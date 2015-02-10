@@ -118,9 +118,10 @@ class BoobiesBot(GenericIRCBot):
 
     def privmsg(self, user, channel, msg): #{{{
 	# don't do anything if this message might be processed later on
+	mesg = msg.lower()
 	for cmd in self.commandData.keys():
-	    if cmd in msg:
-		GenericIRCBot.privmsg(self, user, channel, msg)
+	    if cmd in mesg:
+		GenericIRCBot.privmsg(self, user, channel, mesg)
 		return
 	
 	# look at individual pieces, each may be an URL
