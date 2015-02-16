@@ -118,8 +118,10 @@ class BoobiesBot(GenericIRCBot):
 
     def privmsg(self, user, channel, msg): #{{{
 	# don't do anything if this message might be processed later on
+	tokens = msg.lower().split(' ', 2)
+	action = tokens[0];
 	for cmd in self.commandData.keys():
-	    if cmd in msg:
+	    if cmd in action:
 		GenericIRCBot.privmsg(self, user, channel, msg)
 		return
 	
