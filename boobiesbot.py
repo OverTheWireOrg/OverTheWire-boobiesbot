@@ -213,7 +213,7 @@ if __name__ == '__main__':
     f = BoobiesBotFactory(BoobiesBot, ["#social"], "BoobiesBot", "BoobiesBot v1.4", "https://github.com/StevenVanAcker/OverTheWire-boobiesbot")
 
     # connect factory to this host and port
-    reactor.connectTCP("irc.overthewire.org", 6667, f)
+    reactor.connectTCP(sys.argv[1] if len(sys.argv) > 1 else "irc.overthewire.org", 6667, f)
 
     # run bot
     reactor.run()
