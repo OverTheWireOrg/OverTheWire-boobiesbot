@@ -9,5 +9,5 @@ RUN chown boobiesbot:boobiesbot /data
 USER boobiesbot
 WORKDIR /home/boobiesbot
 
-CMD git clone https://github.com/StevenVanAcker/OverTheWire-boobiesbot.git  && cd /data && /home/boobiesbot/OverTheWire-boobiesbot/boobiesbot.py
+CMD git clone https://github.com/StevenVanAcker/OverTheWire-boobiesbot.git  && cd /data && /home/boobiesbot/OverTheWire-boobiesbot/boobiesbot.py $HOSTIP
 
