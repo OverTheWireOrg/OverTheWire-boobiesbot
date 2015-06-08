@@ -86,10 +86,9 @@ class BoobiesBot(GenericIRCBot):
 	    del self.commandData["!aaboobies"]
 	    self.commands = dict((k,[x for x in v if x != "!aaboobies"]) for (k,v) in self.commands.items())
     #}}}
-    def handle_BOOBIES(self, msgtype, user, recip, cmd, rest=""): #{{{
-        if rest and rest.startswith(("http://","https://")):
-	    parts = rest.split(" ")
-	    url = parts[0]
+    def handle_BOOBIES(self, msgtype, user, recip, cmd, *rest): #{{{
+        if rest and len(rest) > 0 and rest[0].startswith(("http://","https://")):
+	    url = rest[0]
 	    if msgtype == "private":
 		self.sendMessage(msgtype, user, recip, "Sorry, adding is not allowed in this message mode.")
 		return
@@ -98,23 +97,33 @@ class BoobiesBot(GenericIRCBot):
 		self.sendMessage(msgtype, user, recip, "Thanks, but I already had those boobies <3")
 		return
 	    else:
-	    	# FIXME: check if all tags are valid and add
 		bid = self.factory.db.addBoobies(url, addedby=user)
-		self.sendMessage(msgtype, user, recip, "Thanks for the boobies (id=%s)! <3" % bid)
+		msg = "Thanks for the boobies (id=%s)! <3" % bid
+		if len(rest) > 1:
+		    (suc, errmsg) = self.factory.db.addTags(bid, rest[1:], addedby=user)
+		    if not suc:
+			msg += ", but I couldn't add the tags: %s :(" % errmsg
+		self.sendMessage(msgtype, user, recip, msg)
 		return
 
 	msgfmt = "[%s] %s (%s)"
 	taglist = []
 	if rest:
-	    (url, bid) = self.factory.db.getSpecificBoobies(rest)
+	    (url, bid, tags) = self.factory.db.getSpecificBoobies(rest[0])
 	    if url:
 	    	# we found a URL that matches an ID specified by the user, return it
-		self.sendMessage(msgtype, user, recip, msgfmt % (bid, url))
+		# ugh, duplicate code much?
+		tagmsg = ""
+		if tags and len(tags) > 0:
+		    tagmsg = "Tags: %s" % ",".join(tags)
+		else:
+		    tagmsg = "No tags"
+		self.sendMessage(msgtype, user, recip, msgfmt % (bid, url, tagmsg))
 		return
 	    else:
 	    	# the user didn't specify a URL and didn't request a specific ID
 		# maybe he is looking for a bunch of tags?
-		lctags = [x.lower() for x in rest.split(" ") if x != ""]
+		lctags = [x.lower() for x in rest]
 		if all(self.factory.db.isValidTag(x) for x in lctags):
 		    # they are all tags, look for them
 		    taglist = lctags
