@@ -15,7 +15,8 @@ from time import gmtime, strftime
 
 from irc.GenericIRCBot import GenericIRCBot, GenericIRCBotFactory, log
 from boobies.BoobiesClassifier import isBoobiesPicture
-from boobies.BoobiesDatabaseSQLite3 import *
+#from boobies.BoobiesDatabaseSQLite3 import *
+from boobies.BoobiesDatabaseMongoDB import *
 
 try:
     import Image
@@ -26,7 +27,7 @@ except ImportError:
     print "aalib not found on this system..."
 
 class BoobiesBot(GenericIRCBot):
-    def __init__(self):
+    def __init__(self): #{{{
 	self.commandData = {
 	    "!help": { 
 	    	"fn": self.handle_HELP, 
@@ -72,7 +73,7 @@ class BoobiesBot(GenericIRCBot):
 	if not use_aalib:
 	    del self.commandData["!aaboobies"]
 	    self.commands = dict((k,[x for x in v if x != "!aaboobies"]) for (k,v) in self.commands.items())
-
+    #}}}
     def handle_BOOBIES(self, msgtype, user, recip, cmd, url=""): #{{{
         if url and url.startswith(("http://","https://")):
 	    if msgtype == "private":
@@ -81,32 +82,35 @@ class BoobiesBot(GenericIRCBot):
 
 	    if self.factory.db.alreadyStored(url):
 		self.sendMessage(msgtype, user, recip, "Thanks, but I already had those boobies <3")
+		return
 	    else:
 		bid = self.factory.db.addBoobies(url)
-		self.sendMessage(msgtype, user, recip, "Thanks for the boobies (id=%d)! <3" % bid)
+		self.sendMessage(msgtype, user, recip, "Thanks for the boobies (id=%s)! <3" % bid)
+		return
 
-        elif url and url.isdigit(): # request for a specific pair of boobs
-            id=int(url)
-            (url, bid) = self.factory.db.getSpecificBoobies(id)
-            if url:
-                self.sendMessage(msgtype, user, recip, "[%d] %s" % (bid, url))
-            else:
-                self.sendMessage(msgtype, user, recip, "No boobies with this id :(")
-
-        else:
-	    (url, bid) = self.factory.db.getRandomBoobies()
+	msgfmt = "[%s] %s"
+	if url:
+	    (url, bid) = self.factory.db.getSpecificBoobies(url)
 	    if url:
-	        self.sendMessage(msgtype, user, recip, "[%d] %s" % (bid, url))
+		self.sendMessage(msgtype, user, recip, msgfmt % (bid, url))
+		return
 	    else:
-	        self.sendMessage(msgtype, user, recip, "No boobies yet :(")
+	    	# we fall back on a random selection, but let the user know he messed up anyway
+		msgfmt += " (Not sure what you meant, but here you go)"
+	
+	(url, bid) = self.factory.db.getRandomBoobies()
+	if url:
+	    self.sendMessage(msgtype, user, recip, msgfmt % (bid, url))
+	    return
+	else:
+	    self.sendMessage(msgtype, user, recip, "No boobies yet :(")
+	    return
 #}}}
     def handle_DEL(self, msgtype, user, recip, cmd, boobieid): #{{{
-        if not boobieid.isdigit():
-            self.sendMessage(msgtype, user, recip, "The del command takes 1 numeric argument")
-        else:
-            boobieid = int(boobieid)
-	    self.factory.db.delBoobies(boobieid)
-	    self.sendMessage(msgtype, user, recip, "removed boobies url %d" % boobieid)
+	if self.factory.db.delBoobies(boobieid):
+	    self.sendMessage(msgtype, user, recip, "removed boobies url %s" % boobieid)
+	else:
+	    self.sendMessage(msgtype, user, recip, "Could not remove those boobies")
 
 #}}}
     def handle_AABOOBIES(self, msgtype, user, recip, cmd): #{{{
@@ -176,7 +180,8 @@ class BoobiesBotFactory(GenericIRCBotFactory):
 
 if __name__ == '__main__':
     # create factory protocol and application
-    db = BoobiesDatabaseSQLite3()
+    #db = BoobiesDatabaseSQLite3()
+    db = BoobiesDatabaseMongoDB()
     f = BoobiesBotFactory(BoobiesBot, db, ["#x"], "BoobiesBot2", "BoobiesBot v2.0", "https://github.com/StevenVanAcker/OverTheWire-boobiesbot")
 
     # connect factory to this host and port

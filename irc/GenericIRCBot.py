@@ -57,6 +57,7 @@ class GenericIRCBot(irc.IRCClient):
 
     def sendMessage(self, msgtype, user, channel, msg):
         prefix = user+": " if msgtype == "directed" else ""
+	msg = msg.encode("ascii", "replace")
 	self.sendLine("PRIVMSG %s :%s%s" % (self.getReplyTarget(msgtype, user, channel), prefix, msg))
 
     def connectionMade(self): #{{{
