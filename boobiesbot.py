@@ -181,7 +181,7 @@ class BoobiesBotFactory(GenericIRCBotFactory):
 if __name__ == '__main__':
     # create factory protocol and application
     #db = BoobiesDatabaseSQLite3()
-    db = BoobiesDatabaseMongoDB()
+    db = BoobiesDatabaseMongoDB(host=sys.argv[1] if len(sys.argv) > 1 else "localhost")
     f = BoobiesBotFactory(BoobiesBot, db, ["#x"], "BoobiesBot2", "BoobiesBot v2.0", "https://github.com/StevenVanAcker/OverTheWire-boobiesbot")
 
     # connect factory to this host and port

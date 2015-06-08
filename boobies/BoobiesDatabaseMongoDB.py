@@ -5,8 +5,8 @@ from pymongo import MongoClient
 from BoobiesDatabase import BoobiesDatabase
 
 class BoobiesDatabaseMongoDB(BoobiesDatabase):
-    def __init__(self, dbname = "boobies"): #{{{
-	client = MongoClient()
+    def __init__(self, dbname = "boobies", host="localhost"): #{{{
+	client = MongoClient("mongodb://%s" % host)
 	db = client[dbname]
 	self.collection = db[dbname]
     #}}}
