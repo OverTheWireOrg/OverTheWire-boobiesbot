@@ -10,4 +10,4 @@ RUN chown boobiesbot:boobiesbot /data
 USER boobiesbot
 WORKDIR /home/boobiesbot
 
-CMD git clone https://github.com/StevenVanAcker/OverTheWire-boobiesbot.git && cd OverTheWire-boobiesbot && git checkout v2.0 && cd /data && /home/boobiesbot/OverTheWire-boobiesbot/boobiesbot.py $HOSTIP
+CMD git clone https://github.com/StevenVanAcker/OverTheWire-boobiesbot.git && cd OverTheWire-boobiesbot && git checkout v2.0 && cd /data && /home/boobiesbot/OverTheWire-boobiesbot/boobiesbot.py $HOSTIP $HOSTIP
