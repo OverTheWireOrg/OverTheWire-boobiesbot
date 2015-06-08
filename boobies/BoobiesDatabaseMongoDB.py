@@ -13,7 +13,7 @@ class BoobiesDatabaseMongoDB(BoobiesDatabase):
     def idFromURL(self, url): #{{{
 	return hashlib.sha1(url).hexdigest()[:7]
     #}}}
-    def addBoobies(self, url): #{{{
+    def addBoobies(self, url, addedby=None): #{{{
         if self.alreadyStored(url):
 	    return None
 
@@ -21,6 +21,7 @@ class BoobiesDatabaseMongoDB(BoobiesDatabase):
         res = self.collection.insert({
 	    "_id": newid,
 	    "url": url,
+	    "addedby": addedby,
 	    "rnd": random.random()
 	})
 
@@ -29,29 +30,74 @@ class BoobiesDatabaseMongoDB(BoobiesDatabase):
     def alreadyStored(self, url): #{{{
         return self.collection.find({"_id": self.idFromURL(url)}).count() > 0
     #}}}
-    def getSpecificBoobies(self,id): #{{{
+    def getSpecificBoobies(self,id,tags=None): #{{{
         if id != None:
 	    data = self.collection.find_one({"_id": id})
 	else:
 	    for i in range(50):
-		data = self.collection.find_one({ 'rnd': { '$gte': random.random() } })
+	    	crit = { 'rnd': { '$gte': random.random() } }
+		if tags:
+		    lctags = [x.lower() for x in tags]
+		    for t in lctags:
+		        if self.isValidTag(t):
+			    crit["tags.%s" % t] = { "$exists": True }
+			    
+		data = self.collection.find_one(crit)
 		if data != None:
 		    break
 
 	if data:
-	    return data["url"], data["_id"]
+	    return data["url"], data["_id"], data["tags"].keys() if "tags" in data else []
 	else:
-	    return None, None
+	    return None, None, None
 
    #}}}
-    def getRandomBoobies(self): #{{{
-        return self.getSpecificBoobies(None)
+    def getRandomBoobies(self, tags=None): #{{{
+        return self.getSpecificBoobies(None, tags)
     #}}}
     def delBoobies(self, id): #{{{
-        if self.alreadyStored(id):
-	    self.collection.remove({"_id":id})
-
+	self.collection.remove({"_id":id})
     #}}}    
+    def addTags(self, id, tags, addedby=None): #{{{
+	lctags = [x.lower() for x in tags]
+	# if tags are all valid
+	if not all(self.isValidTag(x) for x in lctags):
+	    return (False, "Invalid tag(s)")
+
+        # if id exists, get record
+	data = self.collection.find_one({"_id": id})
+
+	if data:
+	    if "tags" not in data:
+	        data["tags"] = {}
+	    
+	    # add tags if they are not already there
+	    data["tags"] = dict([(x, addedby) for x in lctags] + data["tags"].items())
+
+	    res = self.collection.update({"_id": id}, data)
+
+	    return (True, "Success")
+	return (False, "Those boobies do not exist")
+    #}}}
+    def delTags(self, id, tags): #{{{
+	lctags = [x.lower() for x in tags]
+	# if tags are all valid
+	if not all(self.isValidTag(x) for x in lctags):
+	    return (False, "Invalid tag(s)")
+
+        # if id exists, get record
+	data = self.collection.find_one({"_id": id})
+
+	if data and "tags" in data:
+	    data["tags"] = dict((k,v) for (k,v) in data["tags"].items() if k.lower() not in lctags)
+	    res = self.collection.update({"_id": id}, data)
+	    return (True, "Success")
+	return (False, "Those boobies or tags do not exist")
+    #}}}
+    def _dumpRec(self, url): #{{{
+        id = self.idFromURL(url)
+	return self.collection.find_one({"_id": id})
+    #}}}
 
 
 if __name__ == '__main__':
@@ -59,10 +105,15 @@ if __name__ == '__main__':
 
     url = "http://test.com"
     i = db.idFromURL(url)
-    print db.addBoobies(url)
+    print db.addBoobies(url, addedby="Steven")
     print db.alreadyStored(url)
+    print db.addTags(i, ["#abc", "#x123"], addedby="Steven")
+    print db.delTags(i, ["#abc"])
+    print db._dumpRec(url)
     print db.getSpecificBoobies(i)
     print db.getRandomBoobies()
+    print "Finding with tags:"
+    print db.getRandomBoobies(["#abc"])
     print db.delBoobies(i)
 
 

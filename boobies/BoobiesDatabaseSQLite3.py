@@ -13,7 +13,7 @@ class BoobiesDatabaseSQLite3(BoobiesDatabase):
 	    cu.execute("create table boobies (url varchar)")
 	    self.db.commit()
     #}}}
-    def addBoobies(self, url): #{{{
+    def addBoobies(self, url, addedby=None): #{{{
 	cu = self.db.cursor()
 	cu.execute("insert into boobies values(?)", (url,))
 	self.db.commit()
@@ -33,24 +33,30 @@ class BoobiesDatabaseSQLite3(BoobiesDatabase):
        cu.execute("select url, rowid from boobies where rowid=%d" %id)
        row = cu.fetchone()
        if row:
-           return (str(row[0]), int(row[1]))
+           return (str(row[0]), int(row[1]), [])
        else:
-           return ("", 0)
+           return ("", 0, [])
    #}}}
-    def getRandomBoobies(self): #{{{
+    def getRandomBoobies(self, tags=None): #{{{
 	cu = self.db.cursor()
 	cu.execute("select url, rowid from boobies order by random() limit 1")
 	row = cu.fetchone()
 	if row:
-	    return (str(row[0]), int(row[1]))
+	    return (str(row[0]), int(row[1]), [])
 	else:
-	    return ("", 0)
+	    return ("", 0, [])
     #}}}
     def delBoobies(self, bid): #{{{
         cu = self.db.cursor()
         cu.execute("delete from boobies where rowid=%d" % bid)
         self.db.commit()
     #}}}    
+    def addTags(self, bid, tags, addedby=None): #{{{
+        pass
+    #}}}
+    def delTags(self, bid, tags): #{{{
+        pass
+    #}}}
 
 
 if __name__ == '__main__':

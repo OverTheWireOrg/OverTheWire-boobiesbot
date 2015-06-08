@@ -39,7 +39,7 @@ class BoobiesBot(GenericIRCBot):
 	    	"fn": self.handle_BOOBIES, 
 		"argc": self.DontCheckARGC, 
 		"tillEnd": True,
-		"help": "get a random boobies link, or add one if argument is given",
+		"help": "get a random boobies link, or add one if argument is given. Hash-tags can be added behind the URL",
 	    },
             "!delboobies": {
                 "fn": self.handle_DEL,
@@ -59,23 +59,37 @@ class BoobiesBot(GenericIRCBot):
                 "tillEnd": False,
                 "help": "get info on this bot",
             },
+	    "!tag": { 
+	    	"fn": self.handle_TAG, 
+		"argc": self.DontCheckARGC, 
+		"tillEnd": False,
+		"help": "add tags to a given ID",
+	    },
+	    "!deltag": { 
+	    	"fn": self.handle_DELTAG, 
+		"argc": self.DontCheckARGC, 
+		"tillEnd": False,
+		"help": "remove tags from a given ID",
+	    },
 	}
 
 	self.commands = {
 	    # only in direct user message, first word is the command
-	    "private": ["!help", "!boobies", "!aaboobies", "!info"],
+	    "private": ["!help", "!boobies", "!aaboobies", "!info", "!tag"],
 	    # only in channels, first word must be the command
-	    "public": ["!boobies", "!delboobies", "!info"],
+	    "public": ["!boobies", "!delboobies", "!info", "!tag", "!deltag"],
 	    # only in channels, first word is the name of this bot followed by a colon, second word is the command
-	    "directed": ["!boobies", "!delboobies", "!info"],
+	    "directed": ["!boobies", "!delboobies", "!info", "!tag", "!deltag"],
 	}
 
 	if not use_aalib:
 	    del self.commandData["!aaboobies"]
 	    self.commands = dict((k,[x for x in v if x != "!aaboobies"]) for (k,v) in self.commands.items())
     #}}}
-    def handle_BOOBIES(self, msgtype, user, recip, cmd, url=""): #{{{
-        if url and url.startswith(("http://","https://")):
+    def handle_BOOBIES(self, msgtype, user, recip, cmd, rest=""): #{{{
+        if rest and rest.startswith(("http://","https://")):
+	    parts = rest.split(" ")
+	    url = parts[0]
 	    if msgtype == "private":
 		self.sendMessage(msgtype, user, recip, "Sorry, adding is not allowed in this message mode.")
 		return
@@ -84,23 +98,39 @@ class BoobiesBot(GenericIRCBot):
 		self.sendMessage(msgtype, user, recip, "Thanks, but I already had those boobies <3")
 		return
 	    else:
-		bid = self.factory.db.addBoobies(url)
+	    	# FIXME: check if all tags are valid and add
+		bid = self.factory.db.addBoobies(url, addedby=user)
 		self.sendMessage(msgtype, user, recip, "Thanks for the boobies (id=%s)! <3" % bid)
 		return
 
-	msgfmt = "[%s] %s"
-	if url:
-	    (url, bid) = self.factory.db.getSpecificBoobies(url)
+	msgfmt = "[%s] %s (%s)"
+	taglist = []
+	if rest:
+	    (url, bid) = self.factory.db.getSpecificBoobies(rest)
 	    if url:
+	    	# we found a URL that matches an ID specified by the user, return it
 		self.sendMessage(msgtype, user, recip, msgfmt % (bid, url))
 		return
 	    else:
-	    	# we fall back on a random selection, but let the user know he messed up anyway
-		msgfmt += " (Not sure what you meant, but here you go)"
+	    	# the user didn't specify a URL and didn't request a specific ID
+		# maybe he is looking for a bunch of tags?
+		lctags = [x.lower() for x in rest.split(" ") if x != ""]
+		if all(self.factory.db.isValidTag(x) for x in lctags):
+		    # they are all tags, look for them
+		    taglist = lctags
+		else:
+		    # we fall back on a random selection, but let the user know he messed up anyway
+		    msgfmt += " (Not sure what you meant, but here you go)"
 	
-	(url, bid) = self.factory.db.getRandomBoobies()
+	# if we get here, then we have no idea what the user means... return a random URL
+	(url, bid, tags) = self.factory.db.getRandomBoobies(taglist)
 	if url:
-	    self.sendMessage(msgtype, user, recip, msgfmt % (bid, url))
+	    tagmsg = ""
+	    if tags and len(tags) > 0:
+	        tagmsg = "Tags: %s" % ",".join(tags)
+	    else:
+	        tagmsg = "No tags"
+	    self.sendMessage(msgtype, user, recip, msgfmt % (bid, url, tagmsg))
 	    return
 	else:
 	    self.sendMessage(msgtype, user, recip, "No boobies yet :(")
@@ -132,6 +162,26 @@ class BoobiesBot(GenericIRCBot):
     def handle_INFO(self, msgtype, user, recip, cmd, url=""): #{{{
 	self.sendMessage(msgtype, user, recip, "I am %s. Contribute to my sourcecode via pull-requests on %s." % (self.getFullname(), self.getURL()))
 	return
+#}}}
+    def handle_TAG(self, msgtype, user, recip, cmd, *tags): #{{{
+	if len(tags) > 1:
+	    (suc, msg) = self.factory.db.addTags(tags[0], tags[1:])
+	    if suc:
+		self.sendMessage(msgtype, user, recip, "Tags added <3")
+	    else:
+		self.sendMessage(msgtype, user, recip, "Failed to add tags: %s :(" % msg)
+	else:
+	    self.sendMessage(msgtype, user, recip, "Specify an ID followed by hashtags")
+#}}}
+    def handle_DELTAG(self, msgtype, user, recip, cmd, *tags): #{{{
+	if len(tags) > 1:
+	    (suc, msg) = self.factory.db.delTags(tags[0], tags[1:])
+	    if suc:
+		self.sendMessage(msgtype, user, recip, "Tags removed <3")
+	    else:
+		self.sendMessage(msgtype, user, recip, "Failed to remove tags: %s :(" % msg)
+	else:
+	    self.sendMessage(msgtype, user, recip, "Specify an ID followed by hashtags")
 #}}}
 
     def privmsg(self, user, channel, msg): #{{{
@@ -181,7 +231,7 @@ class BoobiesBotFactory(GenericIRCBotFactory):
 if __name__ == '__main__':
     # create factory protocol and application
     #db = BoobiesDatabaseSQLite3()
-    db = BoobiesDatabaseMongoDB(host=sys.argv[1] if len(sys.argv) > 1 else "localhost")
+    db = BoobiesDatabaseMongoDB(host=sys.argv[2] if len(sys.argv) > 2 else "localhost")
     f = BoobiesBotFactory(BoobiesBot, db, ["#x"], "BoobiesBot2", "BoobiesBot v2.0", "https://github.com/StevenVanAcker/OverTheWire-boobiesbot")
 
     # connect factory to this host and port
