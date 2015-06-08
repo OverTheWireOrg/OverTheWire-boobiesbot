@@ -13,8 +13,9 @@ import sqlite3
 import sys, os.path
 from time import gmtime, strftime
 
-from GenericIRCBot import GenericIRCBot, GenericIRCBotFactory, log
-from BoobiesClassifier import isBoobiesPicture
+from irc.GenericIRCBot import GenericIRCBot, GenericIRCBotFactory, log
+from boobies.BoobiesClassifier import isBoobiesPicture
+from boobies.BoobiesDatabaseSQLite3 import *
 
 try:
     import Image
@@ -78,22 +79,22 @@ class BoobiesBot(GenericIRCBot):
 		self.sendMessage(msgtype, user, recip, "Sorry, adding is not allowed in this message mode.")
 		return
 
-	    if self.factory.db_alreadyStored(url):
+	    if self.factory.db.alreadyStored(url):
 		self.sendMessage(msgtype, user, recip, "Thanks, but I already had those boobies <3")
 	    else:
-		bid = self.factory.db_addBoobies(url)
+		bid = self.factory.db.addBoobies(url)
 		self.sendMessage(msgtype, user, recip, "Thanks for the boobies (id=%d)! <3" % bid)
 
         elif url and url.isdigit(): # request for a specific pair of boobs
             id=int(url)
-            (url, bid) = self.factory.db_getSpecificBoobies(id)
+            (url, bid) = self.factory.db.getSpecificBoobies(id)
             if url:
                 self.sendMessage(msgtype, user, recip, "[%d] %s" % (bid, url))
             else:
                 self.sendMessage(msgtype, user, recip, "No boobies with this id :(")
 
         else:
-	    (url, bid) = self.factory.db_getRandomBoobies()
+	    (url, bid) = self.factory.db.getRandomBoobies()
 	    if url:
 	        self.sendMessage(msgtype, user, recip, "[%d] %s" % (bid, url))
 	    else:
@@ -104,7 +105,7 @@ class BoobiesBot(GenericIRCBot):
             self.sendMessage(msgtype, user, recip, "The del command takes 1 numeric argument")
         else:
             boobieid = int(boobieid)
-	    self.factory.db_delBoobies(boobieid)
+	    self.factory.db.delBoobies(boobieid)
 	    self.sendMessage(msgtype, user, recip, "removed boobies url %d" % boobieid)
 
 #}}}
@@ -114,7 +115,7 @@ class BoobiesBot(GenericIRCBot):
 	else:
             width = 60
             height= 30
-            (url, bid) = self.factory.db_getRandomBoobies()
+            (url, bid) = self.factory.db.getRandomBoobies()
             screen = aalib.AsciiScreen(width=width, height=height)
             fp = StringIO(urllib2.urlopen(url).read())
             image = Image.open(fp).convert('L').resize(screen.virtual_size)
@@ -159,7 +160,7 @@ class BoobiesBot(GenericIRCBot):
 	        continue
 
 	    # Check if URL contains boobies, add it if it does
-	    if isBoobiesPicture(url) and not self.factory.db_alreadyStored(url):
+	    if isBoobiesPicture(url) and not self.factory.db.alreadyStored(url):
 		GenericIRCBot.privmsg(self, user, channel, "!boobies %s" % url)
     #}}}
     def joined(self, channel): #{{{
@@ -167,63 +168,16 @@ class BoobiesBot(GenericIRCBot):
     #}}}
 
 class BoobiesBotFactory(GenericIRCBotFactory):
-    def __init__(self, proto, channel, nick, fullname, url): #{{{
+    def __init__(self, proto, db, channel, nick, fullname, url): #{{{
         GenericIRCBotFactory.__init__(self, proto, channel, nick, fullname, url)
-	# if the db file doesn't exist, create it
-	self.db_init("boobies.db")
+	self.db = db
 # }}}
-    def db_init(self, fn): #{{{
-	if os.path.exists(fn):
-	    self.db = sqlite3.connect(fn)
-	else:
-	    self.db = sqlite3.connect(fn)
-	    cu = self.db.cursor()
-	    cu.execute("create table boobies (url varchar)")
-	    self.db.commit()
-    #}}}
-    def db_addBoobies(self, url): #{{{
-	cu = self.db.cursor()
-	cu.execute("insert into boobies values(?)", (url,))
-	self.db.commit()
-        return cu.lastrowid
-    #}}}
-    def db_alreadyStored(self, url): #{{{
-	cu = self.db.cursor()
-	cu.execute("select rowid from boobies where url = ?", (url,))
-	row = cu.fetchone()
-	if row:
-	    return True
-	else:
-	    return False
-    #}}}
-    def db_getSpecificBoobies(self,id): #{{{
-       cu = self.db.cursor()
-       cu.execute("select url, rowid from boobies where rowid=%d" %id)
-       row = cu.fetchone()
-       if row:
-           return (str(row[0]), int(row[1]))
-       else:
-           return ("", 0)
-   #}}}
-    def db_getRandomBoobies(self): #{{{
-	cu = self.db.cursor()
-	cu.execute("select url, rowid from boobies order by random() limit 1")
-	row = cu.fetchone()
-	if row:
-	    return (str(row[0]), int(row[1]))
-	else:
-	    return ("", 0)
-    #}}}
-    def db_delBoobies(self, bid): #{{{
-        cu = self.db.cursor()
-        cu.execute("delete from boobies where rowid=%d" % bid)
-        self.db.commit()
-    #}}}    
 
 
 if __name__ == '__main__':
     # create factory protocol and application
-    f = BoobiesBotFactory(BoobiesBot, ["#social"], "BoobiesBot", "BoobiesBot v1.4", "https://github.com/StevenVanAcker/OverTheWire-boobiesbot")
+    db = BoobiesDatabaseSQLite3()
+    f = BoobiesBotFactory(BoobiesBot, db, ["#x"], "BoobiesBot2", "BoobiesBot v2.0", "https://github.com/StevenVanAcker/OverTheWire-boobiesbot")
 
     # connect factory to this host and port
     reactor.connectTCP(sys.argv[1] if len(sys.argv) > 1 else "irc.overthewire.org", 6667, f)
