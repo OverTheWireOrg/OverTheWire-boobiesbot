@@ -3,8 +3,6 @@
 # twisted imports
 from twisted.words.protocols import irc
 from twisted.internet import reactor, protocol
-import aalib
-import Image
 import urllib2
 from cStringIO import StringIO
 
@@ -17,6 +15,14 @@ from time import gmtime, strftime
 
 from GenericIRCBot import GenericIRCBot, GenericIRCBotFactory, log
 from BoobiesClassifier import isBoobiesPicture
+
+try:
+    import Image
+    import aalib
+    use_aalib = True
+except ImportError:
+    use_aalib = False
+    print "aalib not found on this system..."
 
 class BoobiesBot(GenericIRCBot):
     def __init__(self):
@@ -62,6 +68,10 @@ class BoobiesBot(GenericIRCBot):
 	    "directed": ["!boobies", "!delboobies", "!info"],
 	}
 
+	if not use_aalib:
+	    del self.commandData["!aaboobies"]
+	    self.commands = dict((k,[x for x in v if x != "!aaboobies"]) for (k,v) in self.commands.items())
+
     def handle_BOOBIES(self, msgtype, user, recip, cmd, url=""): #{{{
         if url and url.startswith(("http://","https://")):
 	    if msgtype == "private":
@@ -99,6 +109,9 @@ class BoobiesBot(GenericIRCBot):
 
 #}}}
     def handle_AABOOBIES(self, msgtype, user, recip, cmd): #{{{
+    	if not use_aalib:
+	    self.sendMessage(msgtype, user, recip, "Sorry, this platform does not support aalib :(")
+	else:
             width = 60
             height= 30
             (url, bid) = self.factory.db_getRandomBoobies()
@@ -109,7 +122,7 @@ class BoobiesBot(GenericIRCBot):
 	    output= screen.render()
 	    out_arr = output.split()
 	    for i in xrange(height):
-                        self.sendMessage(msgtype ,user ,recip, out_arr[i])
+		    self.sendMessage(msgtype ,user ,recip, out_arr[i])
 #}}}
     def handle_INFO(self, msgtype, user, recip, cmd, url=""): #{{{
 	self.sendMessage(msgtype, user, recip, "I am %s. Contribute to my sourcecode via pull-requests on %s." % (self.getFullname(), self.getURL()))
