@@ -15,7 +15,6 @@ from time import gmtime, strftime
 
 from irc.GenericIRCBot import GenericIRCBot, GenericIRCBotFactory, log
 from boobies.BoobiesClassifier import isBoobiesPicture
-#from boobies.BoobiesDatabaseSQLite3 import *
 from boobies.BoobiesDatabaseMongoDB import *
 
 try:
@@ -239,9 +238,8 @@ class BoobiesBotFactory(GenericIRCBotFactory):
 
 if __name__ == '__main__':
     # create factory protocol and application
-    #db = BoobiesDatabaseSQLite3()
     db = BoobiesDatabaseMongoDB(host=sys.argv[2] if len(sys.argv) > 2 else "localhost")
-    f = BoobiesBotFactory(BoobiesBot, db, ["#x"], "BoobiesBot2", "BoobiesBot v2.0", "https://github.com/StevenVanAcker/OverTheWire-boobiesbot")
+    f = BoobiesBotFactory(BoobiesBot, db, ["#social"], "BoobiesBot", "BoobiesBot v2.0", "https://github.com/StevenVanAcker/OverTheWire-boobiesbot")
 
     # connect factory to this host and port
     reactor.connectTCP(sys.argv[1] if len(sys.argv) > 1 else "irc.overthewire.org", 6667, f)
