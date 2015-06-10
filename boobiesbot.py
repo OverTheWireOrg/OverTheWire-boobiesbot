@@ -14,7 +14,7 @@ from irc.GenericIRCBot import GenericIRCBot, GenericIRCBotFactory, log
 from boobies.BoobiesClassifier import isBoobiesPicture
 from boobies.BoobiesDatabaseMongoDB import *
 
-FULLNAME = "BoobiesBot v2.1"
+FULLNAME = "BoobiesBot v2.2"
 BOTURL = "https://github.com/StevenVanAcker/OverTheWire-boobiesbot"
 
 try:
@@ -77,6 +77,13 @@ class BoobiesBot(GenericIRCBot):
 		"tillEnd": False,
 		"help": "remove tags from a given ID",
 		"msgtypes": ["public", "directed"],
+	    },
+	    "!listtags": { 
+	    	"fn": self.handle_LISTTAGS, 
+		"argc": self.DontCheckARGC, 
+		"tillEnd": False,
+		"help": "shows the hashtags in the system that match a given needle",
+		"msgtypes": ["private", "public", "directed"],
 	    },
 	}
     #}}}
@@ -196,6 +203,16 @@ class BoobiesBot(GenericIRCBot):
 		self.sendReply(req, "Failed to remove tags: %s :(" % msg)
 	else:
 	    self.sendReply(req, "Specify an ID followed by hashtags")
+#}}}
+    def handle_LISTTAGS(self, req): #{{{
+	tags = req["words"][1:]
+	matching = self.factory.db.getTagNames(tags[0] if len(tags) > 0 else None)
+
+	if len(matching) > 0:
+	    self.sendReply(req, "Known tags: %s" % ",".join(matching))
+	else:
+	    self.sendReply(req, "No known tags :(")
+
 #}}}
 
     def looksLikeValidBoobiesURL(self, url): #{{{
