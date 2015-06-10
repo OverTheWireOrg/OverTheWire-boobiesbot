@@ -178,7 +178,7 @@ class BoobiesBot(GenericIRCBot):
     def handle_TAG(self, req): #{{{
 	tags = req["words"][1:]
 	if len(tags) > 1:
-	    (suc, msg) = self.factory.db.addTags(tags[0], tags[1:])
+	    (suc, msg) = self.factory.db.addTags(tags[0], tags[1:], addedby=req["fromuser"])
 	    if suc:
 		self.sendReply(req, "Tags added <3")
 	    else:
