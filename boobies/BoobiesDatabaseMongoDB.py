@@ -56,7 +56,9 @@ class BoobiesDatabaseMongoDB(BoobiesDatabase):
         return self.getSpecificBoobies(None, tags)
     #}}}
     def delBoobies(self, id): #{{{
-	self.collection.remove({"_id":id})
+	res = self.collection.remove({"_id":id})
+	print res
+	return res and res["n"] > 0
     #}}}    
     def addTags(self, id, tags, addedby=None): #{{{
 	lctags = [x.lower() for x in tags]
