@@ -119,7 +119,7 @@ class GenericIRCBot(irc.IRCClient):
 	    else:
 	        req["msgtype"] = "public"
 
-	req["words"] = msg.split()
+	req["words"] = req["msg"].split()
 	req["cmd"] = req["words"][0] if len(req["words"]) > 0 else None
 
 	return req
