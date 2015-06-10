@@ -14,7 +14,7 @@ from irc.GenericIRCBot import GenericIRCBot, GenericIRCBotFactory, log
 from boobies.BoobiesClassifier import isBoobiesPicture
 from boobies.BoobiesDatabaseMongoDB import *
 
-FULLNAME = "BoobiesBot v2.0"
+FULLNAME = "BoobiesBot v2.1"
 BOTURL = "https://github.com/StevenVanAcker/OverTheWire-boobiesbot"
 
 try:
