@@ -7,7 +7,7 @@ import urllib2
 from cStringIO import StringIO
 
 # system imports
-import sys, os.path
+import sys, os.path, re
 from time import gmtime, strftime
 
 from irc.GenericIRCBot import GenericIRCBot, GenericIRCBotFactory, log
@@ -27,6 +27,7 @@ except ImportError:
 
 class BoobiesBot(GenericIRCBot):
     def __init__(self): #{{{
+        self.catchall = self.handle_catchall
 	self.commandData = {
 	    "!help": { 
 	    	"fn": self.handle_HELP, 
@@ -112,7 +113,7 @@ class BoobiesBot(GenericIRCBot):
 	self.sendReply(req, msgfmt % (bid, url, tagmsg))
     #}}}
     def subhandle_ADD_BOOBIES(self, req, url): #{{{
-	if msgtype == "private":
+	if req["msgtype"] == "private":
 	    self.sendReply(req, "Sorry, adding is not allowed in this message mode.")
 	    return
 
@@ -197,38 +198,22 @@ class BoobiesBot(GenericIRCBot):
 	    self.sendReply(req, "Specify an ID followed by hashtags")
 #}}}
 
-    def privmsg2(self, user, channel, msg): #{{{
-	# don't do anything if this message might be processed later on
-	tokens = msg.lower().split(' ', 2)
-	action = tokens[0];
-	for cmd in self.commandData.keys():
-	    if cmd in action:
-		GenericIRCBot.privmsg(self, user, channel, msg)
-		return
-	
-	# look at individual pieces, each may be an URL
-    	maybeurls = msg.split()
+    def looksLikeValidBoobiesURL(self, url): #{{{
+        regex = [
+	    r'^(http|https)://.*\.(png|jpg|jpeg|gif)'
+	]
 
-	for url in maybeurls:
-	    # URL must start with http:// or https://
-            if not url.startswith(("http://","https://")):
-	        continue
-	    # URL must end with valid suffix
-	    validSuffices = [".jpg", ".jpeg", ".gif", ".png"]
-	    hasValidSuffix = False
-
-	    for suf in validSuffices:
-		if url.endswith(suf):
-		    hasValidSuffix = True
-		    break
-
-
-	    if not hasValidSuffix:
-	        continue
-
-	    # Check if URL contains boobies, add it if it does
-	    if isBoobiesPicture(url) and not self.factory.db.alreadyStored(url):
-		GenericIRCBot.privmsg(self, user, channel, "!boobies %s" % url)
+	isurl = any(re.match(x, url) for x in regex)
+	return isurl
+    #}}}
+    def handle_catchall(self, req): #{{{
+    	for url in req["words"]:
+	    if self.looksLikeValidBoobiesURL(url) and not self.factory.db.alreadyStored(url):
+		if isBoobiesPicture(url):
+		    req["msg"] = "!boobies %s" % url
+		    req["origmsg"] = "!boobies %s" % url
+		    req["words"] = ["!boobies", url]
+		    self.subhandle_ADD_BOOBIES(req, url)
     #}}}
     def joined(self, channel): #{{{
         pass

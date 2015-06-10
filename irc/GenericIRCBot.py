@@ -34,6 +34,7 @@ class GenericIRCBot(irc.IRCClient):
         "public": [],
         "directed": [],
     }
+    catchall = None
 
     def getCommandRecord(self, cmd): #{{{
 	lccmd = cmd.lower()
@@ -89,6 +90,10 @@ class GenericIRCBot(irc.IRCClient):
         return self.getNickname()
 #}}}
 
+    def tryCatchAll(self, req): #{{{
+        if self.catchall:
+	    self.catchall(req)
+    #}}}
     def makeIRCrequest(self, src, dest, msg): #{{{
         req = {
 	    "from": src,
@@ -125,14 +130,15 @@ class GenericIRCBot(irc.IRCClient):
 	if req["cmd"] != None:
 	    # check the records...
 	    cmdrec = self.getCommandRecord(req["cmd"])
-	    print cmdrec
 
-	    # if the command exists, but is not allowed in this message type, announce it
 	    if not cmdrec:
 	    	if req["msgtype"] != "public":
 		    self.sendReply(req, "Unknown command %s" % req["cmd"])
+		else:
+		    self.tryCatchAll(req)
 		return
 
+	    # if the command exists, but is not allowed in this message type, announce it
 	    if req["msgtype"] not in cmdrec["msgtypes"]:
 		self.sendReply(req, "This command should be used in another message mode")
 		return
@@ -148,8 +154,9 @@ class GenericIRCBot(irc.IRCClient):
 	else:
 	    if msgtype != "public":
 		self.sendReply(req, "What is it? Use !help if you're confused...")
+	    else:
+		self.tryCatchAll(req)
 	    return
-
 	    
 	cmdrec["fn"](req)
 #}}}
