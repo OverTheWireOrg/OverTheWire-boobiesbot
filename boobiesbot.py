@@ -229,7 +229,7 @@ class BoobiesBotFactory(GenericIRCBotFactory):
 if __name__ == '__main__':
     # create factory protocol and application
     db = BoobiesDatabaseMongoDB(host=sys.argv[2] if len(sys.argv) > 2 else "localhost")
-    f = BoobiesBotFactory(BoobiesBot, db, ["#x"], "BoobiesBot2")
+    f = BoobiesBotFactory(BoobiesBot, db, ["#social"], "BoobiesBot")
 
     # connect factory to this host and port
     reactor.connectTCP(sys.argv[1] if len(sys.argv) > 1 else "irc.overthewire.org", 6667, f)
