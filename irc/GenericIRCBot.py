@@ -36,8 +36,9 @@ class GenericIRCBot(irc.IRCClient):
     }
 
     def getCommandRecord(self, cmd): #{{{
-	if cmd in self.commandData:
-	    return self.commandData[cmd]
+	lccmd = cmd.lower()
+	if lccmd in self.commandData:
+	    return self.commandData[lccmd]
 	return None
 #}}}
     def getNickname(self): #{{{
