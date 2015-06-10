@@ -33,3 +33,6 @@ class BoobiesDatabase(object):
     def delTags(self, bid, tags): #{{{
     	pass
     #}}}
+    def getTagNames(self, needle = None): #{{{
+        pass
+    #}}}

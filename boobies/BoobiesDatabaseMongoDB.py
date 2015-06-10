@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import hashlib, random
+import hashlib, random, sys
 from pymongo import MongoClient
 from BoobiesDatabase import BoobiesDatabase
 
@@ -99,6 +99,18 @@ class BoobiesDatabaseMongoDB(BoobiesDatabase):
     def _dumpRec(self, url): #{{{
         id = self.idFromURL(url)
 	return self.collection.find_one({"_id": id})
+    #}}}
+
+    def getTagNames(self, needle = None): #{{{
+    	out = {}
+	for i in self.collection.distinct("tags"):
+	    out = dict(out.items() + i.items())
+	allkeys = [x.lower() for x in out.keys()]
+
+	if needle:
+	    return [x for x in allkeys if needle.lower() in x]
+	else:
+	    return allkeys
     #}}}
 
 
