@@ -22,7 +22,7 @@ class BoobiesDatabaseMongoDB(BoobiesDatabase):
 	    "_id": newid,
 	    "url": url,
 	    "addedby": addedby,
-	    "rnd": random.random()
+	    "rnd": self.getRecordCount()
 	})
 
         return newid
@@ -34,8 +34,9 @@ class BoobiesDatabaseMongoDB(BoobiesDatabase):
         if id != None:
 	    data = self.collection.find_one({"_id": id})
 	else:
+	    cnt = self.getRecordCount()
 	    for i in range(50):
-	    	crit = { 'rnd': { '$gte': random.random() } }
+	    	crit = { 'rnd': { '$gte': random.randint(0, cnt - 1) } }
 		if tags:
 		    lctags = [x.lower() for x in tags]
 		    for t in lctags:
@@ -112,10 +113,15 @@ class BoobiesDatabaseMongoDB(BoobiesDatabase):
 	else:
 	    return allkeys
     #}}}
+    def getRecordCount(self): #{{{
+	return self.collection.count()
+    #}}}
 
 
 if __name__ == '__main__':
     db = BoobiesDatabaseMongoDB()
+
+    print db.getRecordCount()
 
     url = "http://test.com"
     i = db.idFromURL(url)
