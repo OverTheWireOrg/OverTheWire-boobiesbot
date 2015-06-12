@@ -179,7 +179,7 @@ class BoobiesBot(GenericIRCBot):
 		self.sendReply(req, out_arr[i])
 #}}}
     def handle_INFO(self, req): #{{{
-	self.sendReply(req, "I am %s. Contribute to my sourcecode via pull-requests on %s." % (FULLNAME, BOTURL))
+	self.sendReply(req, "I am %s and I hold %d URLs. Contribute to my sourcecode via pull-requests on %s." % (FULLNAME, self.factory.db.getRecordCount(), BOTURL))
 	return
 #}}}
     def handle_TAG(self, req): #{{{
