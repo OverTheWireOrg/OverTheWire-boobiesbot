@@ -14,8 +14,8 @@ from irc.GenericIRCBot import GenericIRCBot, GenericIRCBotFactory, log
 from boobies.BoobiesClassifier import isBoobiesPicture
 from boobies.BoobiesDatabaseMongoDB import *
 
-FULLNAME = "BoobiesBot v2.3"
-BOTURL = "https://github.com/StevenVanAcker/OverTheWire-boobiesbot"
+FULLNAME = "BoobiesBot v2.4"
+BOTURL = "https://github.com/OverTheWireOrg/OverTheWire-boobiesbot"
 
 try:
     import Image
@@ -156,7 +156,7 @@ class BoobiesBot(GenericIRCBot):
 #}}}
     def handle_DELBOOBIES(self, req): #{{{
         boobieid = req["words"][1]
-	url,_,tags = self.factory.db.delBoobies(boobieid):
+	url,_,tags = self.factory.db.delBoobies(boobieid)
 	if url:
 	    tagmsg = ""
 	    if tags and len(tags) > 0:
