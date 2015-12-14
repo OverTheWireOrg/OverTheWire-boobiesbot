@@ -156,10 +156,16 @@ class BoobiesBot(GenericIRCBot):
 #}}}
     def handle_DELBOOBIES(self, req): #{{{
         boobieid = req["words"][1]
-	if self.factory.db.delBoobies(boobieid):
-	    self.sendReply(req, "removed boobies url %s" % boobieid)
+	url,_,tags = self.factory.db.delBoobies(boobieid):
+	if url:
+	    tagmsg = ""
+	    if tags and len(tags) > 0:
+		tagmsg = "Tags: %s" % ",".join(tags)
+	    else:
+		tagmsg = "No tags"
+	    self.sendReply(req, "removed boobies url %s -- %s (%s)" % (boobieid, url, tagmsg))
 	else:
-	    self.sendReply(req, "Could not remove those boobies")
+	    self.sendReply(req, "Could not remove those boobies (id %s)" % boobieid)
 
 #}}}
     def handle_AABOOBIES(self, req): #{{{

@@ -55,9 +55,12 @@ class BoobiesDatabaseMongoDB(BoobiesDatabase):
         return self.getSpecificBoobies(None, tags)
     #}}}
     def delBoobies(self, id): #{{{
+        url,_,tags = self.getSpecificBoobies(id)
 	res = self.collection.remove({"_id":id})
-	print res
-	return res and res["n"] > 0
+	if res and res["n"] > 0:
+	    return url,id,tags
+	else:
+	    return None,id,None
     #}}}    
     def getTags(self, id): # {{{
         urlrec = self._dumpRec(id)
