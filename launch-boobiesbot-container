@@ -1,0 +1,19 @@
+#!/bin/bash
+
+hostip=$(ip addr show dev eth0|grep "inet " | tr "/" " "| awk '{print $2}')
+
+function killdocker() {
+    docker kill boobiesbot
+    docker rm boobiesbot
+}
+
+killdocker
+
+trap killdocker EXIT
+
+docker run -e "HOSTIP=$hostip" -d --name="boobiesbot" boobiesbot
+
+while true; do
+    sleep 10;
+    test $(docker ps -q -f name="boobiesbot"|wc -l) -eq 1 || exit 1
+done
