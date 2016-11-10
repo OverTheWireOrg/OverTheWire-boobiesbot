@@ -67,7 +67,7 @@ class BoobiesDatabaseMongoDB(BoobiesDatabase):
 	if urlrec:
 	    if "imgdataid" in urlrec:
 		datarec = self._dumpImgData(urlrec["imgdataid"])
-		if "tags" in datarec:
+		if datarec and "tags" in datarec:
 		    return datarec["tags"]
 	    if "tags" in urlrec:
 		return urlrec["tags"]
