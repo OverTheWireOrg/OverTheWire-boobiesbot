@@ -1,6 +1,6 @@
 #!/bin/bash
 
-hostip=$(ip addr show dev eth0|grep "inet " | tr "/" " "| awk '{print $2}')
+hostip=$(ip addr show dev eth0|grep "inet " | tr "/" " "| awk '{print $2}'|head -1)
 
 function killdocker() {
     docker kill boobiesbot
